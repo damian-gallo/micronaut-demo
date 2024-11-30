@@ -1,0 +1,85 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "io.micronaut.application" version "4.4.4"
+    id "io.micronaut.aot" version "4.4.4"
+    id "jacoco"
+}
+
+version = "0.1"
+group = "com.example"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor "org.projectlombok:lombok:1.18.36"
+    annotationProcessor "io.micronaut:micronaut-http-validation"
+    annotationProcessor "io.micronaut.serde:micronaut-serde-processor"
+    annotationProcessor "io.micronaut.validation:micronaut-validation-processor"
+    implementation "io.micronaut.serde:micronaut-serde-jackson"
+    implementation "io.micronaut.data:micronaut-data-hibernate-jpa"
+    implementation "io.micronaut.data:micronaut-data-tx-hibernate"
+    implementation "io.micronaut.sql:micronaut-hibernate-jpa"
+    implementation "io.micronaut.sql:micronaut-jdbc-hikari"
+    implementation "io.micronaut.validation:micronaut-validation"
+    implementation "org.postgresql:postgresql"
+    compileOnly "io.micronaut:micronaut-http-client"
+    compileOnly "org.projectlombok:lombok:1.18.36"
+    runtimeOnly "ch.qos.logback:logback-classic"
+
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.36"
+    testAnnotationProcessor "io.micronaut:micronaut-inject-java"
+    testImplementation "io.micronaut.test:micronaut-test-junit5"
+    testImplementation "io.micronaut:micronaut-http-client"
+    testImplementation "com.h2database:h2"
+    testImplementation "org.junit.jupiter:junit-jupiter-params:5.11.3"
+    testImplementation "org.mockito:mockito-core:2.1.0"
+    testImplementation "io.micronaut.test:micronaut-test-rest-assured"
+    testCompileOnly "org.projectlombok:lombok:1.18.36"
+}
+
+
+application {
+    mainClass = "com.example.Application"
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("21")
+    targetCompatibility = JavaVersion.toVersion("21")
+}
+
+
+graalvmNative.toolchainDetection = false
+
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.example.*")
+    }
+    aot {
+        // Please review carefully the optimizations enabled below
+        // Check https://micronaut-projects.github.io/micronaut-aot/latest/guide/ for more details
+        optimizeServiceLoading = false
+        convertYamlToJava = false
+        precomputeOperations = true
+        cacheEnvironment = true
+        optimizeClassLoading = true
+        deduceEnvironment = true
+        optimizeNetty = true
+        replaceLogbackXml = true
+    }
+}
+
+
+tasks.named("dockerfileNative") {
+    jdkVersion = "21"
+}
+
+test {
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+}
